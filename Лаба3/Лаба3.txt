@@ -1,0 +1,139 @@
+Створення таблиці з попередніми даними:
+DROP TABLE IF EXISTS book;
+CREATE TABLE book
+( № INT AUTO_INCREMENT PRIMARY KEY,
+ Cod INT,
+ New BOOLEAN NOT NULL DEFAULT 1,
+ Name VARCHAR(255) NOT NULL,
+ Price FLOAT(5) NOT NULL DEFAULT 0 CHECK (Price >= 0),
+ Publ_house VARCHAR(255),
+ Pages INT NOT NULL DEFAULT 0 CHECK (Pages >= 0),
+ Format VARCHAR(255),
+ Dat DATE DEFAULT NULL,
+ Tir INT NOT NULL DEFAULT 0 CHECK (Tir >= 0),
+ Theme VARCHAR(255),
+ Category VARCHAR(255)
+)
+ ENGINE=InnoDB CHARACTER SET 'utf8'
+COLLATE 'utf8_general_ci';
+
+LOAD DATA INFILE 'TXT1.txt'
+INTO TABLE book 
+
+1. Вивести книги у яких не введена ціна або ціна дорівнює 0
+
+SELECT * FROM book 
+WHERE Price = 0 OR Price = NULL
+
+2. Вивести книги у яких введена ціна, але не введений тираж
+
+SELECT * FROM book 
+WHERE Price >= 0 AND Tir = NULL
+(Всюди введений тираж)
+
+3. Вивести книги, про дату видання яких нічого не відомо.
+
+SELECT * FROM book 
+WHERE Dat = '0000-00-00' OR Dat = NULL
+
+4. Вивести книги, з дня видання яких пройшло не більше року.
+
+SET @LAST_YEAR = DATE_ADD(CURRENT_DATE, INTERVAL -1 YEAR);
+SELECT * FROM book WHERE Dat > DATE_ADD(@LAST_YEAR, INTERVAL 1 DAY) 
+AND Dat < DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY)
+(Немає книг з дня видання яких пройшло не більше року)
+
+5. Вивести список книг-новинок, відсортованих за зростанням ціни
+
+SELECT * FROM book 
+WHERE New = 1
+ORDER BY Price ASC
+
+6. Вивести список книг з числом сторінок від 300 до 400, відсортованих в зворотному алфавітному порядку назв
+
+SELECT * FROM book 
+WHERE Pages BETWEEN 300 AND 400
+ORDER BY Name DESC
+
+7. Вивести список книг з ціною від 20 до 40, відсортованих за спаданням дати
+
+SELECT * FROM book 
+WHERE Price BETWEEN 20 AND 40
+ORDER BY Dat DESC
+
+8. Вивести список книг, відсортованих в алфавітному порядку назв і ціною по спадаючій
+
+SELECT * FROM book 
+ORDER BY Name ASC;
+SELECT * FROM book
+ORDER BY Price DESC
+
+9. Вивести книги, у яких ціна однієї сторінки < 10 копійок.
+
+SELECT * FROM book 
+WHERE (Price / Pages) < 0.1
+
+10. Вивести значення наступних колонок: число символів в назві, перші 20 символів назви великими літерами
+
+SELECT CONCAT(UCASE(LEFT(Name, 20)) , SUBSTR(NAME, 21, lENGTH(Name))) FROM book
+
+11. Вивести значення наступних колонок: перші 10 і останні 10 символів назви прописними буквами, розділені '...'
+
+SELECT CONCAT(LEFT(Name,10),'...',RIGHT(Name,10)) FROM book
+
+12. Вивести значення наступних колонок: назва, дата, день, місяць, рік
+
+SELECT Name, Dat, DAY(Dat) AS 'Day', MONTH(Dat) AS 'Month',YEAR(Dat) AS 'Year' FROM book
+
+13. Вивести значення наступних колонок: назва, дата, дата в форматі 'dd / mm / yyyy'
+
+SELECT Name, Dat, CONCAT((DATE_FORMAT(Dat, "%d")),'/',DATE_FORMAT(Dat, "%m"),'/',DATE_FORMAT(Dat, "%Y")) 
+AS 'DAY/MONTH/YEAR' FROM book
+
+14. Вивести значення наступних колонок: код, ціна, ціна в грн., ціна в євро, ціна в руб.
+
+SELECT Cod, Price, CONCAT(FORMAT((Price * 36.75), 1),'₴') AS 'Ціна в грн', 
+CONCAT(FORMAT((Price * 0.94), 1),'€') AS 'Ціна в євро' FROM book
+
+15. Вивести значення наступних колонок: код, ціна, ціна в грн. без копійок, ціна без копійок округлена
+
+SELECT Cod, Price, CONCAT(TRUNCATE(Price * 36.75, 0),'₴') AS 'Ціна в грн без копійок', 
+FORMAT(Price , 0) AS 'Ціна без копійок округлена' FROM book
+
+16. Додати інформацію про нову книгу (всі колонки)
+
+INSERT INTO book (№, Cod, New, Name, Price, Publ_house, Pages, Format, Dat, Tir, Theme, Category)
+VALUES (44,5677, 1, 'Програмування', 12.40, 'Віларж', 260, '60х90/16', '2023-02-21', 350, NULL , NULL);
+SELECT * FROM book
+
+17. Додати інформацію про нову книгу (колонки обов'язкові для введення)
+
+INSERT INTO book (№, Cod, New, Name, Price, Publ_house, Pages, Format, Dat, Tir, Theme, Category)
+VALUES (45, NULL , 1, 'Програмування SQL', 32.40, NULL, 460, NULL, NULL, 450, NULL , NULL);
+SELECT * FROM book
+
+18. Видалити книги, видані до 1990 року
+
+DELETE FROM book
+WHERE YEAR(Dat) < '1990';
+SELECT * FROM book
+
+19. Проставити поточну дату для тих книг, у яких дата видання відсутня
+
+UPDATE book
+SET Dat =
+Case
+WHEN Dat = '0000-00-00' OR Dat = NULL THEN CURRENT_DATE()
+ELSE Dat
+END;
+SELECT * FROM book;
+
+20. Установити ознаку новинка для книг виданих після 2005 року
+
+UPDATE book
+SET New =
+Case
+WHEN YEAR(Dat) > 2005 THEN 1
+ELSE 0
+END;
+SELECT * FROM book;
