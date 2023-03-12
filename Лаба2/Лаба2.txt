@@ -1,0 +1,123 @@
+Створення таблиці з попередніми даними:
+DROP TABLE IF EXISTS book;
+CREATE TABLE book
+( № INT AUTO_INCREMENT PRIMARY KEY,
+ Cod INT,
+ New BOOLEAN NOT NULL DEFAULT 1,
+ Name VARCHAR(255) NOT NULL,
+ Price FLOAT(5) NOT NULL DEFAULT 0 CHECK (Price >= 0),
+ Publ_house VARCHAR(255),
+ Pages INT NOT NULL DEFAULT 0 CHECK (Pages >= 0),
+ Format VARCHAR(255),
+ Dat DATE DEFAULT NULL,
+ Tir INT NOT NULL DEFAULT 0 CHECK (Tir >= 0),
+ Theme VARCHAR(255),
+ Category VARCHAR(255)
+)
+ ENGINE=InnoDB CHARACTER SET 'utf8'
+COLLATE 'utf8_general_ci';
+
+LOAD DATA INFILE 'TXT1.txt'
+INTO TABLE book 
+
+1. Вивести значення наступних колонок: номер, код, новинка, назва, ціна, сторінки
+
+SELECT №, Cod, New, Name, Price, Pages
+FROM book
+
+2. Вивести значення всіх колонок
+
+SELECT * FROM book
+
+3. Вивести значення колонок в наступному порядку: код, назва, новинка, сторінки, ціна, номер
+
+SELECT Cod, Name, New, Pages, Price, №
+FROM book
+
+4. Вивести значення всіх колонок 10 перших рядків
+
+SELECT* FROM book LIMIT 10
+
+5. Вивести значення всіх колонок 10% перших рядків
+
+
+
+6. Вивести значення колонки код без повторення однакових кодів
+
+SELECT DISTINCT Cod
+FROM book
+
+7. Вивести всі книги новинки
+
+SELECT * FROM book
+WHERE New = 1
+
+8. Вивести всі книги новинки з ціною від 20 до 30
+
+SELECT * FROM book
+WHERE New = 1 AND Price BETWEEN 20 AND 30
+(Таких книг не має, бо у всіх книгах новинках ціна дорівнює 0)
+
+9. Вивести всі книги новинки з ціною менше 20 і більше 30
+
+SELECT * FROM book
+WHERE New = 1 AND (Price < 20 OR Price > 30)
+
+10. Вивести всі книги з кількістю сторінок від 300 до 400 і з ціною більше 20 і менше 30
+
+SELECT * FROM book
+WHERE (Pages BETWEEN 300 AND 400) AND (Price > 20 AND Price < 30)
+
+11. Вивести всі книги видані взимку 2000 року
+
+SELECT* FROM book
+WHERE Dat BETWEEN '2000-01-01' AND '2000-02-28' OR Dat BETWEEN '2000-12-01' AND '2000-12-31'
+
+12. Вивести книги зі значеннями кодів 5110, 5141, 4985, 4241
+
+SELECT* FROM book
+WHERE Cod IN (5110, 5141, 4985, 4241) 
+
+13. Вивести книги видані в 1999, 2001, 2003, 2005 р
+
+SELECT * FROM book
+WHERE YEAR(Dat) IN (1999, 2001, 2003, 2005)
+
+14. Вивести книги назви яких починаються на літери А-К
+
+SELECT* FROM book
+WHERE Name BETWEEN 'А' AND 'К' 
+
+15. Вивести книги назви яких починаються на літери "АПП", видані в 2000 році з ціною до 20
+
+SELECT * FROM book
+WHERE Name LIKE 'АПП%' AND YEAR(Dat) = '2000' AND Price < 20
+(В книгах немає назви якаб почитанась б на "АПП")
+
+16. Вивести книги назви яких починаються на літери "АПП", закінчуються на "е", видані в першій половині 2000 року
+
+SELECT * FROM book 
+WHERE Name LIKE 'АПП%е' AND Dat BETWEEN '2000-01-01' AND '2000-06-30'
+(В книгах немає назви якаб почитанась б на "АПП" та закінчувалась би на "е")
+
+17. Вивести книги, в назвах яких є слово Microsoft, але немає слова Windows
+
+SELECT * FROM book
+WHERE Name LIKE '%Microsoft%' AND Name NOT LIKE '%Windows%'
+(В книгах немає назви в яких є слово Microsoft)
+
+18. Вивести книги, в назвах яких присутня як мінімум одна цифра.
+
+SELECT * FROM book
+WHERE Name REGEXP '[0-9]'
+
+19. Вивести книги, в назвах яких присутні не менше трьох цифр.
+
+SELECT * FROM book
+WHERE Name REGEXP '([0-9].*){3}'
+
+20. Вивести книги, в назвах яких присутній рівно п'ять цифр.
+
+SELECT * FROM book
+WHERE Name REGEXP '([0-9].*){5}' AND Name NOT REGEXP '([0-9].*){6}'
+(Немає назв в яких присутньо рівно п'ять цифр)
