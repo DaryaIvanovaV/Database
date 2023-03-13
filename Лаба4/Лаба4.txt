@@ -1,0 +1,124 @@
+Оновлення даних таблиці:
+
+DROP TABLE IF EXISTS book;
+CREATE TABLE book
+( № INT AUTO_INCREMENT PRIMARY KEY,
+ Cod INT,
+ New BOOLEAN NOT NULL DEFAULT 1,
+ Name VARCHAR(255) NOT NULL,
+ Price FLOAT(5) NOT NULL DEFAULT 0 CHECK (Price >= 0),
+ Publ_house VARCHAR(255),
+ Pages INT NOT NULL DEFAULT 0 CHECK (Pages >= 0),
+ Format VARCHAR(255),
+ Dat DATE DEFAULT NULL,
+ Tir INT NOT NULL DEFAULT 0 CHECK (Tir >= 0),
+ Theme VARCHAR(255),
+ Category VARCHAR(255)
+)
+ ENGINE=InnoDB CHARACTER SET 'utf8'
+COLLATE 'utf8_general_ci';
+
+LOAD DATA INFILE 'TXT1.txt'
+INTO TABLE book 
+
+1. Вивести статистику: загальна кількість всіх книг, їх вартість, їх середню вартість, мінімальну і максимальну 
+ціну
+
+SELECT COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', MIN(Price) 'Min price', 
+MAX(Price) 'Max price' FROM book
+
+2. Вивести загальну кількість всіх книг без урахування книг з непроставленою ціною
+
+SELECT COUNT(№) 'Загальна кількість всіх книг без урахування книг з непроставленою ціною'
+FROM book
+WHERE Price IS NOT Null AND Price > 0
+
+3. Вивести статистику (див. 1) для книг новинка / не новинка
+
+SELECT New, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', MIN(Price) 'Min price', 
+MAX(Price) 'Max price' FROM book GROUP BY New
+
+4. Вивести статистику (див. 1) для книг за кожним роком видання
+
+SELECT YEAR(Dat) 'Рік видання', COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', 
+MIN(Price) 'Min price', MAX(Price) 'Max price' FROM book GROUP BY YEAR(Dat)
+
+5. Змінити п.4, виключивши з статистики книги з ціною від 10 до 20
+
+SELECT YEAR(Dat) 'Рік видання', COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books',
+MIN(Price) 'Min price', MAX(Price) 'Max price' FROM book WHERE Price NOT BETWEEN 10 AND 20 GROUP BY YEAR(Dat)
+
+6. Змінити п.4. Відсортувати статистику по спадаючій кількості.
+
+SELECT YEAR(Dat) 'Рік видання', COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', 
+MIN(Price) 'Min price', MAX(Price) 'Max price' FROM book GROUP BY YEAR(Dat) ORDER BY COUNT(№) DESC
+
+7. Вивести загальну кількість кодів книг і кодів книг що не повторюються
+
+SELECT COUNT(Cod) 'Кількість книг з повторенням', 
+COUNT(DISTINCT(Cod)) 'Кількість книг без повторення' FROM book
+
+8. Вивести статистику: загальна кількість і вартість книг по першій букві її назви
+
+SELECT LEFT(Name,1), COUNT(№) 'Count books', SUM(Price) 'Sum books' FROM book GROUP BY LEFT(Name,1)
+
+9. Змінити п. 8, виключивши з статистики назви що починаються з англ. букви або з цифри.
+
+SELECT LEFT(Name,1), COUNT(№) 'Count books', SUM(Price) 'Sum books' FROM book 
+WHERE NAME REGEXP '^[^A-Z]' AND NAME REGEXP '^[^0-9]'  GROUP BY LEFT(Name,1)
+
+10. Змінити п. 9 так щоб до складу статистики потрапили дані з роками більшими за 2000.
+
+SELECT LEFT(Name,1), COUNT(№) 'Count books', SUM(Price) 'Sum books' 
+FROM book WHERE NAME NOT REGEXP '[A-Z]' AND NAME NOT REGEXP '[0-9]' AND YEAR(Dat) > '2000' GROUP BY LEFT(Name,1)
+
+11. Змінити п. 10. Відсортувати статистику по спадаючій перших букв назви.
+
+SELECT LEFT(Name,1), COUNT(№) 'Count books', SUM(Price) 'Sum books' FROM book 
+WHERE Name REGEXP '[^A-Z]' AND Name REGEXP '[^0-9]' AND YEAR(Dat) > 2000 GROUP BY LEFT(Name,1) DESC
+
+12. Вивести статистику (див. 1) по кожному місяцю кожного року.
+
+SELECT Dat, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', MIN(Price) 'Min price', 
+MAX(Price) 'Max price' FROM book GROUP BY MONTH(Dat), YEAR(Dat)
+
+13. Змінити п. 12 так щоб до складу статистики не увійшли дані з незаповненими датами.
+
+SELECT Dat, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', MIN(Price) 'Min price', 
+MAX(Price) 'Max price' FROM book WHERE Dat != "0000-00-00" AND Dat IS NOT NULL  GROUP BY MONTH(Dat), YEAR(Dat)
+
+14. Змінити п. 12. Фільтр по спадаючій року і зростанню місяця.
+
+SELECT Dat, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', MIN(Price) 'Min price', 
+MAX(Price) 'Max price' FROM book GROUP BY YEAR(Dat) DESC, MONTH(Dat) ASC
+
+15. Вивести статистику для книг новинка / не новинка: загальна ціна, загальна ціна в грн. / Євро / руб. 
+Колонкам запиту дати назви за змістом.
+
+SELECT New, SUM(Price) 'Sum books', CONCAT(SUM(FORMAT(Price* 36.75, 1)),'₴') 'Загальна ціна в грн', 
+CONCAT(SUM(FORMAT(Price* 0.94, 1)),'€') 'Загальна ціна в євро' FROM book GROUP BY New
+
+16. Змінити п. 15 так щоб виводилася округлена до цілого числа (дол. / Грн. / Євро / руб.) Ціна.
+
+SELECT New, CONCAT(SUM(FORMAT(Price,0)),'$') 'Загальна округлена ціна в дол.', 
+CONCAT(SUM(FORMAT(Price* 36.75, 0)),'₴') 'Загальна округлена ціна в грн', 
+CONCAT(SUM(FORMAT(Price* 0.94,0)),'€') 'Загальна округлена ціна в євро' FROM book GROUP BY New
+
+17. Вивести статистику (див. 1) по видавництвах.
+
+SELECT Publ_house, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', MIN(Price) 'Min price', 
+MAX(Price) 'Max price' FROM book GROUP BY Publ_house
+
+18. Вивести статистику (див. 1) за темами і видавництвами. Фільтр по видавництвам.
+
+SELECT Publ_house, Theme, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', 
+MIN(Price) 'Min price', MAX(Price) 'Max price' FROM book GROUP BY Publ_house, Theme;
+
+19. Вивести статистику (див. 1) за категоріями, темами і видавництвами. Фільтр по видавництвам, темах, категоріям.
+
+SELECT Publ_house, Theme, Category, COUNT(№) 'Count books', SUM(Price) 'Sum books', AVG(Price) 'Avg books', 
+MIN(Price) 'Min price', MAX(Price) 'Max price' FROM book GROUP BY Publ_house, Theme, Category
+
+20. Вивести список видавництв, у яких округлена до цілого ціна однієї сторінки більше 10 копійок.
+
+SELECT Publ_house FROM book WHERE FORMAT(Price/Pages, 2) > 0.10;
